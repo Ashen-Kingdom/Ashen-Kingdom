@@ -3,6 +3,8 @@ import { createScene } from "./scene.js";
 import { createCamera } from "./camera.js";
 import { createWorld } from "./world.js";
 
+alert("main.js loaded");
+
 try {
 
     const canvas = document.getElementById("game");
