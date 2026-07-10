@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Grand Strategy 3D - Fantasy Kingdom</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <!-- Three.js Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-dragon"></div>
+            <h1>GRAND STRATEGY 3D</h1>
+            <p class="loading-subtitle">Forging the Realm...</p>
+            <div class="loading-bar-container">
+                <div class="loading-bar" id="loading-bar"></div>
+            </div>
+            <p class="loading-tip" id="loading-tip">Initializing High-Poly Graphics Engine...</p>
+        </div>
+    </div>
+
+    <!-- TOP HUD BAR -->
+    <div id="top-hud" class="hud-panel hidden">
+        <div class="hud-left">
+            <div class="player-avatar">
+                <div class="avatar-ring"></div>
+                <span class="player-level">42</span>
+            </div>
+            <div class="player-info">
+                <div class="player-name">Lord Commander</div>
+                <div class="power-rating">⚔ 1,284,592</div>
+            </div>
+        </div>
+        <div class="hud-center">
+            <div class="resource-cluster">
+                <div class="resource-item" data-type="gold">
+                    <div class="resource-icon gold-icon">🪙</div>
+                    <div class="resource-values">
+                        <span class="resource-current" id="res-gold">2,450,000</span>
+                        <span class="resource-rate">+12.5k/h</span>
+                    </div>
+                </div>
+                <div class="resource-item" data-type="food">
+                    <div class="resource-icon food-icon">🌾</div>
+                    <div class="resource-values">
+                        <span class="resource-current" id="res-food">1,890,000</span>
+                        <span class="resource-rate">+8.2k/h</span>
+                    </div>
+                </div>
+                <div class="resource-item" data-type="wood">
+                    <div class="resource-icon wood-icon">🪵</div>
+                    <div class="resource-values">
+                        <span class="resource-current" id="res-wood">980,000</span>
+                        <span class="resource-rate">+5.1k/h</span>
+                    </div>
+                </div>
+                <div class="resource-item" data-type="stone">
+                    <div class="resource-icon stone-icon">🪨</div>
+                    <div class="resource-values">
+                        <span class="resource-current" id="res-stone">650,000</span>
+                        <span class="resource-rate">+3.8k/h</span>
+                    </div>
+                </div>
+                <div class="resource-item premium" data-type="gems">
+                    <div class="resource-icon gem-icon">💎</div>
+                    <div class="resource-values">
+                        <span class="resource-current" id="res-gems">2,450</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hud-right">
+            <div class="time-weather-widget">
+                <div class="time-display" id="game-time">06:00</div>
+                <div class="weather-icon" id="weather-icon">☀️</div>
+            </div>
+            <button class="hud-btn settings-btn" id="btn-settings">⚙️</button>
+        </div>
+    </div>
+
+    <!-- TROOP COUNTER OVERLAY -->
+    <div id="troop-panel" class="hud-panel hidden">
+        <div class="troop-grid">
+            <div class="troop-card" data-type="infantry">
+                <div class="troop-icon">🛡️</div>
+                <div class="troop-count" id="troop-infantry">12,450</div>
+                <div class="troop-label">Infantry</div>
+                <div class="troop-capacity-bar"><div class="capacity-fill" style="width:62%"></div></div>
+            </div>
+            <div class="troop-card" data-type="cavalry">
+                <div class="troop-icon">🐴</div>
+                <div class="troop-count" id="troop-cavalry">8,230</div>
+                <div class="troop-label">Cavalry</div>
+                <div class="troop-capacity-bar"><div class="capacity-fill" style="width:41%"></div></div>
+            </div>
+            <div class="troop-card" data-type="archer">
+                <div class="troop-icon">🏹</div>
+                <div class="troop-count" id="troop-archer">6,100</div>
+                <div class="troop-label">Archers</div>
+                <div class="troop-capacity-bar"><div class="capacity-fill" style="width:31%"></div></div>
+            </div>
+            <div class="troop-card" data-type="flying">
+                <div class="troop-icon">🐉</div>
+                <div class="troop-count" id="troop-flying">1,250</div>
+                <div class="troop-label">Sky Legion</div>
+                <div class="troop-capacity-bar"><div class="capacity-fill" style="width:8%"></div></div>
+            </div>
+        </div>
+        <div class="wounded-indicator" id="wounded-indicator">
+            <span class="wounded-icon">🏥</span>
+            <span class="wounded-count" id="wounded-count">0</span>
+            <span class="wounded-label">Wounded</span>
+        </div>
+    </div>
+
+    <!-- BOTTOM ACTION BAR -->
+    <div id="bottom-bar" class="hud-panel hidden">
+        <button class="action-btn" id="btn-city" data-panel="city">
+            <div class="btn-icon">🏰</div>
+            <span>City</span>
+        </button>
+        <button class="action-btn" id="btn-map" data-panel="map">
+            <div class="btn-icon">🗺️</div>
+            <span>Map</span>
+        </button>
+        <button class="action-btn" id="btn-alliance" data-panel="alliance">
+            <div class="btn-icon">🛡️</div>
+            <span>Alliance</span>
+        </button>
+        <button class="action-btn" id="btn-tavern" data-panel="tavern">
+            <div class="btn-icon">🍺</div>
+            <span>Tavern</span>
+        </button>
+        <button class="action-btn" id="btn-hospital" data-panel="hospital">
+            <div class="btn-icon">🏥</div>
+            <span>Hospital</span>
+            <div class="notification-badge" id="hospital-badge">0</div>
+        </button>
+        <button class="action-btn" id="btn-mail" data-panel="mail">
+            <div class="btn-icon">📜</div>
+            <span>Mail</span>
+            <div class="notification-badge" id="mail-badge">3</div>
+        </button>
+        <button class="action-btn" id="btn-rewards" data-panel="rewards">
+            <div class="btn-icon">🎁</div>
+            <span>Rewards</span>
+        </button>
+    </div>
+
+    <!-- CITY VIEW PANEL -->
+    <div id="city-panel" class="fullscreen-panel hidden">
+        <div class="panel-header">
+            <h2>🏰 Kingdom City</h2>
+            <button class="close-panel" data-panel="city">✕</button>
+        </div>
+        <div class="city-grid">
+            <div class="city-building" data-building="castle" data-level="15">
+                <div class="building-visual castle-visual"></div>
+                <div class="building-info">
+                    <div class="building-name">Royal Castle</div>
+                    <div class="building-level">Lv.15</div>
+                    <div class="upgrade-timer hidden" id="castle-timer">02:34:12</div>
+                </div>
+            </div>
+            <div class="city-building" data-building="barracks" data-level="12">
+                <div class="building-visual barracks-visual"></div>
+                <div class="building-info">
+                    <div class="building-name">Barracks</div>
+                    <div class="building-level">Lv.12</div>
+                </div>
+            </div>
+            <div class="city-building" data-building="hospital" data-level="8">
+                <div class="building-visual hospital-visual"></div>
+                <div class="building-info">
+                    <div class="building-name">Hospital</div>
+                    <div class="building-level">Lv.8</div>
+                    <div class="building-status active" id="hospital-status">Active</div>
+                </div>
+            </div>
+            <div class="city-building" data-building="academy" data-level="6">
+                <div class="building-visual academy-visual"></div>
+                <div class="building-info">
+                    <div class="building-name">Academy</div>
+                    <div class="building-level">Lv.6</div>
+                </div>
+            </div>
+            <div class="city-building" data-building="tavern" data-level="10">
+                <div class="building-visual tavern-visual"></div>
+                <div class="building-info">
+                    <div class="building-name">Hero Tavern</div>
+                    <div class="building-level">Lv.10</div>
+                </div>
+            </div>
+            <div class="city-building" data-building="scout" data-level="5">
+                <div class="building-visual scout-visual"></div>
+                <div class="building-info">
+                    <div class="building-name">Scout Tavern</div>
+                    <div class="building-level">Lv.5</div>
+                </div>
+            </div>
+            <div class="city-building" data-building="farm" data-level="14">
+                <div class="building-visual farm-visual"></div>
+                <div class="building-info">
+                    <div class="building-name">Grand Farm</div>
+                    <div class="building-level">Lv.14</div>
+                </div>
+            </div>
+            <div class="city-building" data-building="mine" data-level="11">
+                <div class="building-visual mine-visual"></div>
+                <div class="building-info">
+                    <div class="building-name">Gold Mine</div>
+                    <div class="building-level">Lv.11</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOSPITAL PANEL -->
+    <div id="hospital-panel" class="fullscreen-panel hidden">
+        <div class="panel-header">
+            <h2>🏥 Royal Hospital</h2>
+            <button class="close-panel" data-panel="hospital">✕</button>
+        </div>
+        <div class="hospital-content">
+            <div class="hospital-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="hospital-capacity">2,000</div>
+                    <div class="stat-label">Capacity</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="hospital-occupied">0</div>
+                    <div class="stat-label">Occupied</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="hospital-healing">0</div>
+                    <div class="stat-label">Healing Now</div>
+                </div>
+            </div>
+            <div class="wounded-list" id="wounded-list">
+                <div class="empty-state">
+                    <div class="empty-icon">🏥</div>
+                    <p>No wounded troops currently.</p>
+                    <p class="empty-sub">Victory favors the prepared!</p>
+                </div>
+            </div>
+            <div class="hospital-actions">
+                <button class="action-primary" id="btn-heal-all" disabled>
+                    <span class="btn-cost">💎 50</span>
+                    <span>Heal All Instantly</span>
+                </button>
+                <button class="action-secondary" id="btn-heal-normal" disabled>
+                    <span>Heal with Resources</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAVERN / GACHA PANEL -->
+    <div id="tavern-panel" class="fullscreen-panel hidden">
+        <div class="panel-header">
+            <h2>🍺 Hero Recruitment Tavern</h2>
+            <button class="close-panel" data-panel="tavern">✕</button>
+        </div>
+        <div class="tavern-content">
+            <div class="gacha-display">
+                <div class="gacha-chest" id="gacha-chest">
+                    <div class="chest-glow"></div>
+                    <div class="chest-body">📦</div>
+                    <div class="chest-particles" id="chest-particles"></div>
+                </div>
+                <div class="gacha-result hidden" id="gacha-result">
+                    <div class="hero-card" id="hero-reveal">
+                        <div class="hero-rarity" id="hero-rarity">LEGENDARY</div>
+                        <div class="hero-portrait" id="hero-portrait">👑</div>
+                        <div class="hero-name" id="hero-name">Aldric the Dragonslayer</div>
+                        <div class="hero-class" id="hero-class">Cavalry Commander</div>
+                        <div class="hero-skills" id="hero-skills"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gacha-controls">
+                <div class="token-display">
+                    <span class="token-icon">🎫</span>
+                    <span class="token-count" id="token-count">15</span>
+                    <span class="token-label">Recruit Tokens</span>
+                </div>
+                <div class="draw-buttons">
+                    <button class="draw-btn" id="btn-draw-1" data-draws="1">
+                        <span class="draw-cost">🎫 1</span>
+                        <span class="draw-label">Single Draw</span>
+                    </button>
+                    <button class="draw-btn draw-x10" id="btn-draw-10" data-draws="10">
+                        <span class="draw-cost">🎫 10</span>
+                        <span class="draw-label">Draw x10</span>
+                        <div class="draw-bonus">+1 Bonus</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HERO SKILL TREE PANEL -->
+    <div id="skilltree-panel" class="fullscreen-panel hidden">
+        <div class="panel-header">
+            <h2>🌳 Commander Skill Tree</h2>
+            <button class="close-panel" data-panel="skilltree">✕</button>
+        </div>
+        <div class="skilltree-content">
+            <div class="commander-selector" id="commander-selector"></div>
+            <div class="skilltree-canvas" id="skilltree-canvas">
+                <svg id="skilltree-svg" viewBox="0 0 800 600"></svg>
+            </div>
+            <div class="skill-points">
+                <span>Available Points:</span>
+                <span class="points-value" id="skill-points">12</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALLIANCE PANEL -->
+    <div id="alliance-panel" class="fullscreen-panel hidden">
+        <div class="panel-header">
+            <h2>🛡️ Alliance Territory</h2>
+            <button class="close-panel" data-panel="alliance">✕</button>
+        </div>
+        <div class="alliance-content">
+            <div class="alliance-banner">
+                <div class="alliance-emblem">⚔️</div>
+                <div class="alliance-info">
+                    <div class="alliance-name">Dragon Slayers</div>
+                    <div class="alliance-tag">[DRG]</div>
+                    <div class="alliance-rank">Rank #42 | Power: 89.2M</div>
+                </div>
+            </div>
+            <div class="territory-map-preview" id="territory-preview">
+                <div class="territory-legend">
+                    <div class="legend-item"><span class="legend-color" style="background:#4CAF50"></span> Our Territory</div>
+                    <div class="legend-item"><span class="legend-color" style="background:#f44336"></span> Enemy</div>
+                    <div class="legend-item"><span class="legend-color" style="background:#2196F3"></span> Allied</div>
+                </div>
+            </div>
+            <div class="watchtower-list" id="watchtower-list"></div>
+            <div class="territory-buffs">
+                <div class="buff-card">
+                    <div class="buff-icon">⚡</div>
+                    <div class="buff-info">
+                        <div class="buff-name">Gathering Surge</div>
+                        <div class="buff-desc">+20% resource speed in territory</div>
+                    </div>
+                </div>
+                <div class="buff-card">
+                    <div class="buff-icon">🛡️</div>
+                    <div class="buff-info">
+                        <div class="buff-name">Border Defense</div>
+                        <div class="buff-desc">+15% defense for garrisoned troops</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DAILY REWARDS PANEL -->
+    <div id="rewards-panel" class="fullscreen-panel hidden">
+        <div class="panel-header">
+            <h2>🎁 Daily Honor Chest</h2>
+            <button class="close-panel" data-panel="rewards">✕</button>
+        </div>
+        <div class="rewards-content">
+            <div class="streak-display">
+                <div class="streak-flame">🔥</div>
+                <div class="streak-count" id="streak-count">7</div>
+                <div class="streak-label">Day Streak</div>
+            </div>
+            <div class="rewards-calendar" id="rewards-calendar"></div>
+            <div class="honor-chest">
+                <div class="chest-locked" id="daily-chest">
+                    <div class="chest-icon">🎁</div>
+                    <div class="chest-status" id="chest-status">Claim Now</div>
+                    <div class="chest-timer hidden" id="chest-timer">23:59:59</div>
+                </div>
+            </div>
+            <div class="reward-preview" id="reward-preview"></div>
+        </div>
+    </div>
+
+    <!-- SCOUT PANEL -->
+    <div id="scout-panel" class="fullscreen-panel hidden">
+        <div class="panel-header">
+            <h2>🔭 Scout Operations</h2>
+            <button class="close-panel" data-panel="scout">✕</button>
+        </div>
+        <div class="scout-content">
+            <div class="scout-status" id="scout-status">
+                <div class="scout-icon">🕵️</div>
+                <div class="scout-info">
+                    <div class="scout-state" id="scout-state">Ready to Dispatch</div>
+                    <div class="scout-progress hidden" id="scout-progress">
+                        <div class="progress-bar"><div class="progress-fill" id="scout-progress-fill"></div></div>
+                        <span class="progress-text" id="scout-progress-text">0%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="scout-map" id="scout-map">
+                <div class="fog-overlay" id="fog-overlay"></div>
+                <div class="scout-target" id="scout-target"></div>
+            </div>
+            <div class="scout-actions">
+                <button class="action-primary" id="btn-dispatch-scout">
+                    <span>🕵️ Dispatch Scout</span>
+                    <span class="scout-cost">⏱ 15m</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMBAT HUD OVERLAY -->
+    <div id="combat-hud" class="hud-overlay hidden">
+        <div class="combat-header">
+            <div class="combat-title">⚔️ Battle in Progress</div>
+            <div class="combat-timer" id="combat-timer">02:45</div>
+        </div>
+        <div class="combat-bars">
+            <div class="combat-side friendly">
+                <div class="side-label">Your Forces</div>
+                <div class="side-bar"><div class="bar-fill" style="width:100%"></div></div>
+                <div class="side-troops" id="friendly-troops">26,780</div>
+            </div>
+            <div class="combat-vs">VS</div>
+            <div class="combat-side enemy">
+                <div class="side-label">Enemy Forces</div>
+                <div class="side-bar"><div class="bar-fill enemy-fill" style="width:100%"></div></div>
+                <div class="side-troops" id="enemy-troops">18,420</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DRAGON BOSS HUD -->
+    <div id="boss-hud" class="hud-overlay hidden">
+        <div class="boss-header">
+            <div class="boss-icon">🐉</div>
+            <div class="boss-info">
+                <div class="boss-name">Ancalagon the World-Render</div>
+                <div class="boss-subtitle">Legendary Behemoth</div>
+            </div>
+        </div>
+        <div class="boss-health-container">
+            <div class="boss-health-bar">
+                <div class="boss-health-fill" id="boss-health-fill" style="width:100%"></div>
+                <div class="boss-health-text" id="boss-health-text">100%</div>
+            </div>
+            <div class="boss-health-tier" id="boss-tier">Tier I</div>
+        </div>
+        <div class="boss-abilities" id="boss-abilities"></div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="notification-area"></div>
+
+    <!-- THREAT ALERT -->
+    <div id="threat-alert" class="hidden">
+        <div class="threat-pulse"></div>
+        <div class="threat-content">
+            <div class="threat-icon">⚠️</div>
+            <div class="threat-text">
+                <div class="threat-title">Enemy Incursion Detected!</div>
+                <div class="threat-sub">Alliance Border Sector 7</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BUILDING QUEUE -->
+    <div id="build-queue" class="hud-panel hidden">
+        <div class="queue-header">Construction Queue</div>
+        <div class="queue-list" id="queue-list"></div>
+    </div>
+
+    <!-- CONTEXT MENU (Touch) -->
+    <div id="context-menu" class="hidden">
+        <button class="ctx-btn" data-action="march">⚔️ March</button>
+        <button class="ctx-btn" data-action="gather">🌾 Gather</button>
+        <button class="ctx-btn" data-action="scout">🔭 Scout</button>
+        <button class="ctx-btn" data-action="attack">💥 Attack</button>
+    </div>
+
+    <!-- TOUCH CONTROLS -->
+    <div id="touch-controls" class="hidden">
+        <div class="touch-joystick" id="joystick-left">
+            <div class="joystick-knob"></div>
+        </div>
+        <div class="touch-actions">
+            <button class="touch-btn" id="touch-select">👆</button>
+            <button class="touch-btn" id="touch-action">⚔️</button>
+        </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
