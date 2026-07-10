@@ -3,31 +3,39 @@ import { createScene } from "./scene.js";
 import { createCamera } from "./camera.js";
 import { createWorld } from "./world.js";
 
-const canvas = document.getElementById("game");
+try {
 
-const renderer = createRenderer(canvas);
-const { scene } = createScene();
-const camera = createCamera();
+    const canvas = document.getElementById("game");
 
-createWorld(scene);
+    const renderer = createRenderer(canvas);
+    const { scene } = createScene();
+    const camera = createCamera();
 
-const clock = new THREE.Clock();
+    createWorld(scene);
 
-function resize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    const clock = new THREE.Clock();
+
+    function resize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    window.addEventListener("resize", resize);
+    resize();
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        clock.getDelta();
+
+        renderer.render(scene, camera);
+    }
+
+    animate();
+
+} catch (e) {
+
+    alert(e.message);
+
 }
-
-window.addEventListener("resize", resize);
-resize();
-
-function animate() {
-    requestAnimationFrame(animate);
-
-    const delta = clock.getDelta();
-
-    renderer.render(scene, camera);
-}
-
-animate();
