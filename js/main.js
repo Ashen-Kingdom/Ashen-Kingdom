@@ -50,3 +50,9 @@ try {
     alert(e.stack);
 
 }
+
+const renderer = createRenderer(canvas);
+
+renderer.setClearColor(0xff0000);
+
+alert(renderer.info.render.calls);
